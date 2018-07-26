@@ -2,6 +2,7 @@ import os
 import numpy as np
 import cv2
 import argparse
+import re
 
 parser = argparse.ArgumentParser('create image pairs')
 parser.add_argument('--fold_A', dest='fold_A', help='input directory for image A', type=str, default='../dataset/50kshoes_edges')
@@ -14,11 +15,33 @@ args = parser.parse_args()
 for arg in vars(args):
     print('[%s] = ' % arg,  getattr(args, arg))
 
+pattern = ".jpg"
+    
 splits = os.listdir(args.fold_A)
 
+print(splits)
+
+
 for sp in splits:
-    img_fold_A = os.path.join(args.fold_A, sp)
-    img_fold_B = os.path.join(args.fold_B, sp)
+    matchOB = re.search(pattern, sp)
+    if(matchOB):
+        path_A = os.path.join(args.fold_A, sp)
+        path_B = os.path.join(args.fold_B, sp)
+        path_AB = os.path.join(args.fold_AB, sp)
+        if not os.path.isdir(path_AB):
+            os.makedirs(path_AB)        
+        print(path_A)
+        print(path_B)
+        im_A = cv2.imread(path_A)        
+        im_B = cv2.imread(path_B)
+
+        print(im_A.shape, im_B.shape)
+                
+        im_AB = np.concatenate([im_A, im_B], 1)
+        cv2.imwrite(path_AB, im_AB)    
+    
+    """
+    img_list = splits
     img_list = os.listdir(img_fold_A)
     if args.use_AB:
         img_list = [img_path for img_path in img_list if '_A.' in img_path]
@@ -42,7 +65,11 @@ for sp in splits:
             if args.use_AB:
                 name_AB = name_AB.replace('_A.', '.') # remove _A
             path_AB = os.path.join(img_fold_AB, name_AB)
-            im_A = cv2.imread(path_A, cv2.CV_LOAD_IMAGE_COLOR)
-            im_B = cv2.imread(path_B, cv2.CV_LOAD_IMAGE_COLOR)
+            #im_A = cv2.imread(path_A, cv2.CV_LOAD_IMAGE_COLOR)
+            #im_B = cv2.imread(path_B, cv2.CV_LOAD_IMAGE_COLOR)
+            im_A = cv2.imread(path_A, cv2.COLOR_BGR2HSV)            
+            im_B = cv2.imread(path_B, cv2.COLOR_BGR2HSV)
             im_AB = np.concatenate([im_A, im_B], 1)
             cv2.imwrite(path_AB, im_AB)
+
+    """
